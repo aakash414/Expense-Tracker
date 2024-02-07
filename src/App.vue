@@ -4,7 +4,7 @@
     <Balance :total="+total"/>
     <IncomeExpenses :income="+income" :expenses="+expenses" />
     <TransactionList :transactions="transactions" @transaction-deleted="handleTransactionDeleted"/>
-    <AddTransaction @transaction-submitted="handleTransactionSubmitted"/>
+    <AddTransaction @transactionSubmitted="handleTransactionSubmitted"/>
   </div>
 </template>
 
@@ -14,9 +14,11 @@ import Balance from './components/Balance.vue';
 import IncomeExpenses from './components/IncomeExpenses.vue';
 import TransactionList from './components/TransactionList.vue';
 import AddTransaction from './components/AddTransaction.vue';
-
+import { useToast } from 'vue-toastification';
 import { ref,computed,onMounted } from 'vue';
 
+// Get toast interface
+const toast = useToast();
 const transactions = ref([]);
 
 onMounted(() => {
@@ -53,13 +55,22 @@ const handleTransactionSubmitted = (transactionData) => {
     id: transactions.value.length + 1,
     text: transactionData.text,
     amount: transactionData.amount,
+
   });
+
+  saveToLocalStorage();
+  toast.success('Transaction added successfully');
 };
 
 //Delete transaction
 const handleTransactionDeleted = (id) => {
   transactions.value = transactions.value.filter((transaction) => transaction.id !== id);
-
+saveToLocalStorage();
   toast.success('Transaction deleted successfully');
+};
+
+//save to local storage
+const saveToLocalStorage = () => {
+  localStorage.setItem('transactions', JSON.stringify(transactions.value));
 };
 </script>

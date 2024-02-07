@@ -1,10 +1,10 @@
 <template>
   <Header/>
   <div class="container">
-    <Balance :total="total"/>
+    <Balance :total="+total"/>
     <IncomeExpenses :income="+income" :expenses="+expenses" />
-    <TransactionList :transactions="transactions"/>
-    <AddTransaction/>
+    <TransactionList :transactions="transactions" @transaction-deleted="handleTransactionDeleted"/>
+    <AddTransaction @transaction-submitted="handleTransactionSubmitted"/>
   </div>
 </template>
 
@@ -15,14 +15,17 @@ import IncomeExpenses from './components/IncomeExpenses.vue';
 import TransactionList from './components/TransactionList.vue';
 import AddTransaction from './components/AddTransaction.vue';
 
-import { ref,computed } from 'vue';
+import { ref,computed,onMounted } from 'vue';
 
-const transactions = ref([
-                    {id: 1, text: 'Flower', amount: -20},
-                    {id: 2, text: 'Salary', amount: 300},
-                    {id: 3, text: 'Book', amount: -10},
-                    {id: 4, text: 'Camera', amount: 150}
-                ]);
+const transactions = ref([]);
+
+onMounted(() => {
+  const savedTransactions = JSON.parse(localStorage.getItem('transactions'));
+
+  if (savedTransactions) {
+    transactions.value = savedTransactions;
+  }
+});
 
 const total = computed(() => {
   return transactions.value.reduce((acc, item) => (acc += item.amount), 0).toFixed(2);
@@ -43,4 +46,20 @@ const expenses = computed(() => {
     .reduce((acc, transaction) => acc + transaction.amount, 0)
     .toFixed(2);
 });
+
+//Add Transaction
+const handleTransactionSubmitted = (transactionData) => {
+  transactions.value.push({
+    id: transactions.value.length + 1,
+    text: transactionData.text,
+    amount: transactionData.amount,
+  });
+};
+
+//Delete transaction
+const handleTransactionDeleted = (id) => {
+  transactions.value = transactions.value.filter((transaction) => transaction.id !== id);
+
+  toast.success('Transaction deleted successfully');
+};
 </script>
